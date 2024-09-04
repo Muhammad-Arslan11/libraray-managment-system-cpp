@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 // This is an interface class
@@ -17,36 +18,35 @@ class Book
 
 public:
    // constructor
-public:
    Book() {}
    Book(int bookId, string bookTitle, string bookAuthor, string bookGenre);
-   // add
-   //  void addBook(int bookId, string bookTitle, string bookAuthor, string bookGenre);
-   //   // remove
-   //   // update
-   //   void update(int bookId, string bookTitle, string bookAuthor, string bookGenre );
 
    // make a funtion to show inventory
-   void inventory_of_books(vector<Book> &books);
+   void show_inventory(vector<Book> &books);
+   // make a function to show the availability of book
+   void show_availability(int bookId);
 
    // getters
+public:
    int getId();
    string getTitle();
    string getAuthor();
    string getGenre();
+   bool getAvailable();
 
    // setters
+public:
    void setId(int bookId);
    void setTitle(string bookTitle);
    void setAuthor(string bookAuthor);
    void setGenre(string bookGenre);
+   void setAvailable(bool boolean);
 
    // make Librarian class as friend class of Book so that it can access its data without any permission
    friend class Librarian;
 };
 
 // implementation for Book() constructor
-// add book
 Book::Book(int bookId, string bookTitle, string bookAuthor, string bookGenre)
 {
    id = bookId;
@@ -55,12 +55,9 @@ Book::Book(int bookId, string bookTitle, string bookAuthor, string bookGenre)
    genre = bookGenre;
 }
 
-// removeBook implementation
-
-// updateBook implementation
-
 // implementation for show inventory function
-void Book:: inventory_of_books(vector<Book> &books){
+void Book::show_inventory(vector<Book> &books)
+{
    cout << "Inventory\n"
         << endl;
    for (auto &book : books)
@@ -69,11 +66,33 @@ void Book:: inventory_of_books(vector<Book> &books){
            << book.getGenre() << endl;
    }
 }
+
+// implementation for show book function
+// chatgpt code
+void show_availability(int bookId, vector<Book> &library)
+{
+
+   for (auto &book : library)
+   {
+      if (book.getId() == bookId)
+      {
+         cout << "Book ID: " << bookId << " is available." << endl;
+         book.setAvailable(true);
+         break;
+      }
+   }
+   {
+      std::cout << "Book ID: " << bookId << " is not available." << std::endl;
+   }
+   // chatgpt code
+}
+
 // getters  implementation
 int Book::getId() { return id; }
 string Book::getTitle() { return title; }
 string Book::getAuthor() { return author; }
 string Book::getGenre() { return genre; }
+bool Book::getAvailable() { return available; }
 
 // setters implementation
 void Book::setId(int bookId)
@@ -92,6 +111,10 @@ void Book::setGenre(string bookGenre)
 {
    genre = bookGenre;
 }
+void Book::setAvailable(bool boolean)
+{
+   available = boolean;
+}
 
 // Librarian class
 class Librarian : public Book
@@ -105,38 +128,121 @@ public:
    // addBook implementation
    void addBook(int bookId, string bookTitle, string bookAuthor, string bookGenre)
    {
-      library.push_back(Book(bookId, bookTitle, bookAuthor, bookAuthor));
+      library.push_back(Book(bookId, bookTitle, bookAuthor, bookGenre));
    }
 
    // remove
-   void removeBook(int bookId, string bookTitle, string bookAuthor, string bookGenre){}
-   // update
-   void updateBook(int bookId, string bookTitle, string bookAuthor, string bookGenre){}
+   void removeBook(int bookId)
+   {
+      // chatgpt code
+      library.erase(remove_if(library.begin(), library.end(),
+                              [bookId](Book &book)
+                              {
+                                 return book.getId() == bookId;
+                              }),
+                    library.end());
+      // chatgpt code
+   }
+
+   // show books
+   void showBooks()
+   {
+      show_inventory(library);
+   }
 };
 
 // Members class
 class Members : public Book
 {
+      // maka a collection of books for the members
+      vector<Book> collection;
+
+   // constructor
+public:
+   Members(){}
+
+   // borrow
+   void borrow(int bookId, string bookTitle, string bookAuthor, string bookGenre, Book& books)
+   {
+      for (auto book : books)
+      {
+         if (book.bookId == book.getId())
+         {
+            // push book into the member's collection
+            collection.push_back(Book(bookId, bookTitle, bookAuthor, bookGenre));
+
+                // delete or remove book from library collection
+                library.erase(remove_if(library.begin(), library.end(),
+                                        [bookId](Book &book)
+                                        {
+                                           return book.getId() == bookId;
+                                        }),
+                              library.end());
+
+            // update availability
+            
+         }
+      }
+   }
+
+   // view books
+void
+view_borrowed_books(vector<Book> collection)
+{
+   cout << "Borrowed Books\n"
+        << endl;
+   for (auto &book : collection)
+   {
+      cout << "ID:" << book.getId() << ", Title: " << book.getTitle() << ", Author: " << book.getAuthor() << ", Genre: "
+           << book.getGenre() << endl;
+   }
+}
+// return book
+void return_book(int bookId, string bookTitle, string bookAuthor, string bookGenre)
+{
+   // push book into the library 
+ library.push_back(Book(bookId, bookTitle, bookAuthor, bookGenre));
+
+  // delete or remove book from collection
+                collection.erase(remove_if(collection.begin(), collection.end(),
+                                        [bookId](Book &book)
+                                        {
+                                           return book.getId() == bookId;
+                                        }),
+                              collection.end());
+}
+
+
 };
+
+
 
 int main()
 {
-   // create a collection of books here
-
-   // add multiple books in the library
-   // library.push_back(Book(001, "Power of Habits", "Charles Duhigg", "self-help"));
-
-   // library.push_back(Book(002, "Dr.Faustus", "Cristopher Marlow", "Literatur"));
-   // library.push_back(Book(004, "Compasque", "Robert Green", "Literatur"));
-   // library.push_back(Book(004, "The Art of War", "Sun Tzu ", "War"));
-   // library.push_back(Book(004, "The 33 Strategies of War", "Robert Green", "War"));
 
    Librarian librarian;
    Members memeber;
-    
-    // both memeber and librarian should be able to see inventory
-     librarian.inventory_of_books();
-     memeber.inventory_of_books();
+   // add books in the inventory
+   librarian.addBook(0, "12 Rules for life", "Jordan Peterson", "Self-help");
+   librarian.addBook(1, "Laws of Human Nature", "Robert Green", "Self-help");
+   librarian.addBook(2, "Crime and Punishment", "Dostoyevsky", "Psychological Novel");
+   librarian.addBook(3, "1984", "George Orwell", "Fiction");
+   librarian.addBook(4, "The Pleasures of Philosophy", "Betrand Russel", "Philosophy");
+   librarian.addBook(5, "The Darling", "Anton Chekhov", "Fiction");
+   librarian.addBook(6, "Brothers Karamazov", "Dostoyevsky", "Psychological Novel");
+   librarian.addBook(7, "Hearts and Hands", "O'Henry", "Fiction");
+   librarian.addBook(8, "Atomic Habits", "James Clear", "Discipline");
+   librarian.addBook(9, "Pride and Prejudice", "Jane Austen", "Classic Novel");
+
+   // show books that are in the inventory
+
+   librarian.showBooks();
+   // remove book
+   librarian.removeBook(0);
+
+
+   // both memeber and librarian should be able to see inventory
+   librarian.show_inventory(&library);
 
    return 0;
 };
