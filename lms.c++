@@ -14,7 +14,7 @@ class Book
    string title;
    string author;
    string genre;
-   bool available;
+   bool available = true;
 
 public:
    // constructor
@@ -24,7 +24,7 @@ public:
    // make a funtion to show inventory
    void show_inventory(vector<Book> &books);
    // make a function to show the availability of book
-   void show_availability(int bookId);
+   void show_availability(int bookId, vector<Book>& library);
 
    // getters
 public:
@@ -60,7 +60,7 @@ void Book::show_inventory(vector<Book> &books)
 {
    cout << "Inventory\n"
         << endl;
-   for (auto &book : books)
+   for (auto& book : books)
    {
       cout << "ID:" << book.getId() << ", Title: " << book.getTitle() << ", Author: " << book.getAuthor() << ", Genre: "
            << book.getGenre() << endl;
@@ -69,7 +69,7 @@ void Book::show_inventory(vector<Book> &books)
 
 // implementation for show book function
 // chatgpt code
-void show_availability(int bookId, vector<Book> &library)
+void Book::show_availability(int bookId, vector<Book>& library)
 {
 
    for (auto &book : library)
@@ -162,13 +162,13 @@ public:
    Members(){}
 
    // borrow
-   void borrow(int bookId, string bookTitle, string bookAuthor, string bookGenre, Book& books)
+   void borrow(int bookId, string bookTitle, string bookAuthor, string bookGenre,vector<Book>& library)
    {
-      for (auto book : books)
+      for (auto book : library)
       {
-         if (book.bookId == book.getId())
+         if (bookId == book.getId())
          {
-            // push book into the member's collection
+            // push the book from library into the member's collection
             collection.push_back(Book(bookId, bookTitle, bookAuthor, bookGenre));
 
                 // delete or remove book from library collection
@@ -178,16 +178,18 @@ public:
                                            return book.getId() == bookId;
                                         }),
                               library.end());
-
-            // update availability
+               // update availability
+               book.setAvailable(false);
             
          }
+         break;
       }
+           
    }
 
    // view books
 void
-view_borrowed_books(vector<Book> collection)
+view_borrowed_books()
 {
    cout << "Borrowed Books\n"
         << endl;
@@ -198,18 +200,27 @@ view_borrowed_books(vector<Book> collection)
    }
 }
 // return book
-void return_book(int bookId, string bookTitle, string bookAuthor, string bookGenre)
+void return_book(int bookId, string bookTitle, string bookAuthor, string bookGenre, vector<Book> library)
 {
-   // push book into the library 
- library.push_back(Book(bookId, bookTitle, bookAuthor, bookGenre));
+   for(auto book : library){
+      if(bookId == book.getId()){
+        // push book into the library 
+           library.push_back(Book(bookId, bookTitle, bookAuthor, bookGenre));
 
-  // delete or remove book from collection
+       // delete or remove book from collection
                 collection.erase(remove_if(collection.begin(), collection.end(),
-                                        [bookId](Book &book)
-                                        {
-                                           return book.getId() == bookId;
-                                        }),
-                              collection.end());
+                [bookId](Book &book)
+              {
+              return book.getId() == bookId;
+              }),
+         collection.end());
+      // update availability
+           book.setAvailable(false);
+
+}
+break;
+}
+  
 }
 
 
@@ -220,8 +231,9 @@ void return_book(int bookId, string bookTitle, string bookAuthor, string bookGen
 int main()
 {
 
-   Librarian librarian;
-   Members memeber;
+   Librarian librarian; // librarian instance
+   Members member;  // member instance
+
    // add books in the inventory
    librarian.addBook(0, "12 Rules for life", "Jordan Peterson", "Self-help");
    librarian.addBook(1, "Laws of Human Nature", "Robert Green", "Self-help");
@@ -234,15 +246,37 @@ int main()
    librarian.addBook(8, "Atomic Habits", "James Clear", "Discipline");
    librarian.addBook(9, "Pride and Prejudice", "Jane Austen", "Classic Novel");
 
-   // show books that are in the inventory
 
-   librarian.showBooks();
-   // remove book
-   librarian.removeBook(0);
+   // remove book from the library
+  
+    librarian.showBooks();  // before removal
+    librarian.removeBook(0);
+     librarian.showBooks();  // after removal
+   
+
+
+ // test members methods
+ // 1- show borrowed books
+ member.view_borrowed_books();
+ // 2- borrow book
+  member.borrow(1, "Laws of Human Nature", "Robert Green", "Self-help");
+   librarian.showBooks();  // after borrow
+    member.view_borrowed_books();  // after borrow
+    // 3- return book
+  member.return_book(1, "Laws of Human Nature", "Robert Green", "Self-help");
+   librarian.showBooks();  // after return 
+   member.view_borrowed_books();  // after return
+   
+
+ 
+
+  
+   
+  
 
 
    // both memeber and librarian should be able to see inventory
-   librarian.show_inventory(&library);
+   // librarian.show_inventory(&library);
 
    return 0;
 };
